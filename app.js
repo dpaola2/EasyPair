@@ -2,11 +2,14 @@ window.code_editor = function() {
     this.editor = ace.edit("editor");
     this.editor.setTheme("ace/theme/twilight");
     this.editor.setShowPrintMargin(false);
-    this.debug = function() {
+    this.broadcast = function() {
         var contents = editor.getSession().getValue();
-        $('.debug').html(contents);
+        var output = {
+            content: contents
+        }
+        $('.debug').html(JSON.stringify(output)); //change this to POST to a url
     }
-    this.editor.getSession().on('change', _.debounce(this.debug, 10));
+    this.editor.getSession().on('change', _.debounce(this.broadcast, 10));
 }
 
 $(function() {
