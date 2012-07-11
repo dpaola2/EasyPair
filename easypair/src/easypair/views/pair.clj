@@ -1,5 +1,7 @@
 (ns easypair.views.pair
-  (:use [noir.core :only [defpage]]))
+  (:use [noir.core :only [defpage]]
+        [noir.request])
+  (:require [noir.response]))
 
 (def sessions (ref (hash-map)))
 
@@ -42,4 +44,4 @@
     (join "10.5.5.5" "6.6.6.6")))
 
 (defpage "/new-session" []
-  "Nothing here.")
+  (new-session "192.168.1.1"))
