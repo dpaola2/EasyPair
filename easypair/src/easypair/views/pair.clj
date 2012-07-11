@@ -4,15 +4,17 @@
 
 (defn join [session ipaddr] 
   (let [my-session (get (deref sessions) session)]
-     (let [new-list (cons ipaddr my-session)]
+    (let [new-list (cons ipaddr (:viewers my-session))]
+      (let [new-map (assoc my-session :viewers new-list)]
        (dosync
-        (ref-set sessions (assoc (deref sessions) session new-list))))))
-
-(defn request-control [session] )
+        (ref-set sessions
+                 (assoc (deref sessions)
+                   session new-map)))))))
 
 (defn new-session [ipaddr] 
   (dosync 
-   (ref-set sessions (assoc (deref sessions) ipaddr []))))
+   (ref-set sessions
+            (assoc (deref sessions) ipaddr (hash-map :ipaddr ipaddr :viewers [])))))
 
 (defn list-sessions [] 
   (keys (deref sessions)))
