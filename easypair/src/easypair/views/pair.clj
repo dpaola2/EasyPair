@@ -1,4 +1,5 @@
-(ns easypair.views.pair)
+(ns easypair.views.pair
+  (:use [noir.core :only [defpage]]))
 
 (def sessions (ref (hash-map)))
 
@@ -17,7 +18,7 @@
             (assoc (deref sessions) ipaddr (hash-map :ipaddr ipaddr :viewers [])))))
 
 (defn list-sessions [] 
-  (keys (deref sessions)))
+  (deref sessions))
 
 (defn keystroke [ipaddr contents]
   (println 
@@ -40,4 +41,5 @@
     (join "10.5.5.5" "5.5.5.5")
     (join "10.5.5.5" "6.6.6.6")))
 
-(generate-session-data)
+(defpage "/new-session" []
+  "Nothing here.")
