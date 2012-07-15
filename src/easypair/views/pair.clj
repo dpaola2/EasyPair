@@ -61,4 +61,6 @@
    (get (list-sessions) session-hash)))
 
 (defpage "/update-session/:id" {:keys [id contents]}
-  (response/json (update-session id contents))) 
+  (response/json (update-session id contents)))
+
+(defpage "/sessions" [] (response/json {:hashes (keys (list-sessions))}))
