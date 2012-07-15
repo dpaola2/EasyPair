@@ -40,7 +40,7 @@
     (dosync
      (ref-set sessions
               (assoc (deref sessions) session-hash new-session))
-     sessions)))
+     new-session)))
 
 (defn generate-session-data []
   (do
@@ -57,4 +57,8 @@
     (:remote-addr (ring-request)))))
 
 (defpage "/session/:id" {session-hash :id}
-  (response/json (get (list-sessions) session-hash)))
+  (response/json
+   (get (list-sessions) session-hash)))
+
+(defpage "/update-session/:id" {:keys [id contents]}
+  (response/json (update-session id contents))) 
