@@ -1,7 +1,21 @@
 (ns easypair.views.pair
   (:use [noir.core :only [defpage]]
-        [noir.request])
+        [noir.request]
+        [clj-time.core :exclude [extend]])
   (:require [noir.request]))
+
+; from https://gist.github.com/1302024
+(defn md5
+  "Generate a md5 checksum for the given string"
+  [token]
+  (let [hash-bytes
+         (doto (java.security.MessageDigest/getInstance "MD5")
+               (.reset)
+               (.update (.getBytes token)))]
+       (.toString
+         (new java.math.BigInteger 1 (.digest hash-bytes)) ; Positive and the size of the number
+         16))) ; Use base16 i.e. hex
+
 
 (def sessions (ref (hash-map)))
 
@@ -14,10 +28,14 @@
                  (assoc (deref sessions)
                    session new-map)))))))
 
-(defn new-session [ipaddr] 
-  (dosync 
-   (ref-set sessions
-            (assoc (deref sessions) ipaddr (hash-map :ipaddr ipaddr :viewers [])))))
+(defn new-session [ipaddr]
+  (let [new-key (md5 (str ipaddr "-" (now)))]
+    (dosync 
+     (ref-set sessions
+              (assoc (deref sessions) new-key (hash-map
+                                              :ipaddr ipaddr
+                                              :viewers [])))
+     new-key)))
 
 (defn list-sessions [] 
   (deref sessions))
