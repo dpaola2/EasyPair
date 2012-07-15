@@ -1,11 +1,19 @@
 <html>
   <head>
     <title>Easy Pair</title>
-    <script type="text/javascript" src="ace.js" charset="utf-8"></script>
-    <script type="text/javascript" src="theme-twilight.js"></script>
+    <script type="text/javascript" src="/client/ace.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/client/theme-twilight.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script type="text/javascript" src="underscore-min.js"></script>
-    <script type="text/javascript" src="app.js"></script>
+    <script type="text/javascript" src="/client/underscore-min.js"></script>
+    <script type="text/javascript" src="/client/client.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io.connect('http://localhost:8080');
+      socket.on('news', function (data) {
+      console.log(data);
+      socket.emit('my other event', { my: 'data' });
+      });
+    </script>
     <style>
       #editor {
         width: 400px;
