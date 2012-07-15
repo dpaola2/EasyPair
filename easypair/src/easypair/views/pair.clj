@@ -2,7 +2,8 @@
   (:use [noir.core :only [defpage]]
         [noir.request]
         [clj-time.core :exclude [extend]])
-  (:require [noir.request]))
+  (:require [noir.request]
+            [noir.response :as response]))
 
 ; from https://gist.github.com/1302024
 (defn md5
@@ -19,47 +20,41 @@
 
 (def sessions (ref (hash-map)))
 
-(defn join [session ipaddr] 
-  (let [my-session (get (deref sessions) session)]
-    (let [new-list (cons ipaddr (:viewers my-session))]
-      (let [new-map (assoc my-session :viewers new-list)]
-       (dosync
-        (ref-set sessions
-                 (assoc (deref sessions)
-                   session new-map)))))))
-
 (defn new-session [ipaddr]
-  (let [new-key (md5 (str ipaddr "-" (now)))]
+  "Generate a new session, returning a map with the session hash and session map"
+  (let [
+        new-key (md5 (str ipaddr "-" (now)))
+        new-session (hash-map :ipaddr ipaddr :contents "" :cursor-x 0 :cursor-y 0)]
     (dosync 
      (ref-set sessions
-              (assoc (deref sessions) new-key (hash-map
-                                              :ipaddr ipaddr
-                                              :viewers [])))
-     new-key)))
+              (assoc (deref sessions) new-key new-session))
+     (hash-map :session-hash new-key :session new-session)))) ; return the new session
 
 (defn list-sessions [] 
   (deref sessions))
 
-(defn keystroke [ipaddr contents]
-  (println 
-   "sending" 
-   contents 
-   "to" 
-   (apply str 
-     (interpose 
-      ", " 
-      (get (deref sessions) ipaddr)))))
+(defn update-session [session-hash contents]
+  (let [
+        old-session (get (deref sessions) session-hash)
+        new-session (assoc old-session :contents contents)]
+    (dosync
+     (ref-set sessions
+              (assoc (deref sessions) session-hash new-session))
+     sessions)))
 
 (defn generate-session-data []
   (do
     (new-session "192.168.1.1")
-    (join "192.168.1.1" "1.1.1.1")
-    (join "192.168.1.1" "2.2.2.2")
-    (join "192.168.1.1" "3.3.3.3")
-    (new-session "10.5.5.5")
-    (join "10.5.5.5" "4.4.4.4")
-    (join "10.5.5.5" "5.5.5.5")
-    (join "10.5.5.5" "6.6.6.6")))
+    (new-session "10.5.5.5")))
+
+(defn test-update []
+  (let [session-hash (first (keys (list-sessions)))]
+    (update-session session-hash "foo")))
 
 (defpage "/new-session" []
-  (str (new-session (:remote-addr (ring-request)))))
+  (response/json
+   (new-session
+    (:remote-addr (ring-request)))))
+
+(defpage "/session/:id" {session-hash :id}
+  (response/json (get (list-sessions) session-hash)))
